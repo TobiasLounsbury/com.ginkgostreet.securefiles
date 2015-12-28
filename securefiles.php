@@ -136,3 +136,16 @@ function securefiles_civicrm_preProcess($formName, &$form) {
 }
 
 */
+
+
+/**
+ * Implementation of hook_Securefiles_getBackendServices()
+ * This hook allows 3rd party extensions to register back-end services
+ * We are using it here to register Amazon S3
+ *
+ * @param $services
+ */
+function securefiles_Securefiles_getBackendServices(&$services) {
+  $services['CRM_Securefiles_AmazonS3'] = "Amazon S3";
+}
+
