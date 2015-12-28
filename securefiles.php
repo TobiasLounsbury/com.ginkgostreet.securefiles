@@ -195,3 +195,34 @@ function securefiles_civicrm_permission(array &$permissions) {
     $permissions = array_merge($permissions, $newPerms);
   }
 }
+
+/**
+ * Implementation of hook_civicrm_navigationMenu.
+ *
+ * Adds Secure File Storage navigation items to the Administer menu.
+ *
+ * @link http://wiki.civicrm.org/confluence/display/CRMDOC/hook_civicrm_navigationMenu
+ */
+function securefiles_civicrm_navigationMenu( &$params ) {
+  // get the id of Administer Menu
+  $administerMenuId = CRM_Core_DAO::getFieldValue('CRM_Core_BAO_Navigation', 'Administer', 'id', 'name');
+
+  // skip adding menu if there is no administer menu
+  if ($administerMenuId) {
+    // get the maximum key under adminster menu
+    $maxKey = max( array_keys($params[$administerMenuId]['child']));
+    $params[$administerMenuId]['child'][$maxKey+1] =  array (
+      'attributes' => array (
+        'label'      => 'Secure File Storage',
+        'name'       => 'SecureFileStorage',
+        'url'        => 'civicrm/securefiles/settings?reset=1',
+        'permission' => 'administer CiviCRM',
+        'operator'   => NULL,
+        'separator'  => false,
+        'parentID'   => $administerMenuId,
+        'navID'      => $maxKey+1,
+        'active'     => 1
+      )
+    );
+  }
+}
