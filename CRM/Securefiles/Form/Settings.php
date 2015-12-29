@@ -21,7 +21,12 @@ class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
     parent::preProcess();
     //Set the Backend Service in use currently.
     $this->backend_service_class = CRM_Core_BAO_Setting::getItem("securefiles", "securefiles_backend_service", null, "CRM_Securefiles_AmazonS3");
-    $this->backend_service = new $this->backend_service_class();
+    
+    if(class_exists($this->backend_service_class)) {
+      $this->backend_service = new $this->backend_service_class();
+    } else {
+      $this->backend_service = false;
+    }
   }
 
   /**
@@ -36,7 +41,9 @@ class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
     $defaults =  array();
     $defaults['securefiles_backend_service'] = $this->backend_service_class;
     //Allow the backend service to set defaults
-    $this->backend_service->defaultSettings($defaults);
+    if($this->backend_service) {
+      $this->backend_service->defaultSettings($defaults);
+    }
     return $defaults;
   }
 
@@ -52,7 +59,9 @@ class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
     );
 
     //Allow the Backend service to add fields
-    $this->backend_service->buildSettingsForm($this);
+    if($this->backend_service) {
+      $this->backend_service->buildSettingsForm($this);
+    }
 
     $this->addButtons(array(
       array(
@@ -87,13 +96,19 @@ class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
       return;
     }
 
-    $this->backend_service->saveSettings($values);
+    if($this->backend_service) {
+      $this->backend_service->saveSettings($values);
+    }
 
     parent::postProcess();
   }
 
   function validate() {
-    return $this->backend_service->validateSettings($this);
+    if($this->backend_service) {
+      return $this->backend_service->validateSettings($this);
+    } else {
+      return true;
+    }
   }
 
   /**
