@@ -63,10 +63,15 @@ class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
     ));
 
     //Add our JS to the Page
-    //todo: Add js to warn about changing backend
+    CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_settings.js', 19, 'page-footer');
 
     // export form elements
-    $this->assign('elementNames', $this->getRenderableElementNames());
+    $pageElements = $this->getRenderableElementNames();
+    $serviceIndex = array_search("securefiles_backend_service", $pageElements);
+    if(is_numeric($serviceIndex)) {
+      unset($pageElements[$serviceIndex]);
+    }
+    $this->assign('elementNames', $pageElements);
     parent::buildQuickForm();
   }
 
