@@ -8,8 +8,7 @@ abstract class CRM_Securefiles_Backend {
   abstract protected function fileMetadata($file, $user = null);
 
   function cleanup() {}
-
-
-
-
+  function buildSettingsForm($form) {}
+  function defaultSettings($defaults) { return $defaults; }
+  function saveSettings($values) {}
 }
