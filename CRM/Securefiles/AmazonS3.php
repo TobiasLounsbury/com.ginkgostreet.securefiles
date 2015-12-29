@@ -51,7 +51,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       'select', // field type
       'securefiles_s3_encryption_type', // field name
       'Encryption Method', // field label
-      array("SSE-S3", "SSE-KMS", "SSE-C"),
+      array("SSE-S3" => "SSE-S3", "SSE-KMS" => "SSE-KMS", "SSE-C" => "SSE-C"),
       true // is required
     );
 
@@ -72,11 +72,16 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       ts('Use Client-side Auth Tokens')
     );
 
+
+    //Add Amazon S3 specific settings JS
+    CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_amazon_s3.js', 20, 'page-footer');
   }
+
   function defaultSettings(&$defaults) {
     $defaults = array_merge($defaults, CRM_Core_BAO_Setting::getItem("securefiles_s3"));
     $defaults['securefiles_s3_use_encryption'] = CRM_Core_BAO_Setting::getItem("securefiles_s3", "securefiles_s3_use_encryption", null, 1);
   }
+
   function saveSettings($values) {
     CRM_Core_BAO_Setting::setItem($values['securefiles_s3_region'],"securefiles_s3", "securefiles_s3_region");
     CRM_Core_BAO_Setting::setItem($values['securefiles_s3_key'],"securefiles_s3", "securefiles_s3_key");
