@@ -8,50 +8,87 @@ require_once 'CRM/Core/Form.php';
  * @see http://wiki.civicrm.org/confluence/display/CRMDOC43/QuickForm+Reference
  */
 class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
+
+  private $backend_service_class;
+  private $backend_service = false;
+
+  /**
+   * set variables up before form is built
+   *
+   * @access public
+   */
+  public function preProcess() {
+    parent::preProcess();
+    //Set the Backend Service in use currently.
+    $this->backend_service_class = CRM_Core_BAO_Setting::getItem("securefiles", "securefiles_backend_service", null, "CRM_Securefiles_AmazonS3");
+    $this->backend_service = new $this->backend_service_class();
+  }
+
+  /**
+   * Set default values for the form. For edit/view mode
+   * the default values are retrieved from the database
+   *
+   * @access public
+   *
+   * @return array
+   */
+  function setDefaultValues() {
+    $defaults =  array();
+    $defaults['securefiles_backend_service'] = $this->backend_service_class;
+    //Allow the backend service to set defaults
+    $this->backend_service->defaultSettings($defaults);
+    return $defaults;
+  }
+
   function buildQuickForm() {
 
     // add form elements
     $this->add(
       'select', // field type
-      'favorite_color', // field name
-      'Favorite Color', // field label
-      $this->getColorOptions(), // list of options
+      'securefiles_backend_service', // field name
+      'Backend Service Provider', // field label
+      CRM_Securefiles_Hooks::getBackendServices(), // list of options
       true // is required
     );
+
+    //Allow the Backend service to add fields
+    $this->backend_service->buildSettingsForm($this);
+
     $this->addButtons(array(
       array(
         'type' => 'submit',
-        'name' => ts('Submit'),
+        'name' => ts('Save Settings'),
         'isDefault' => TRUE,
       ),
     ));
+
+    //Add our JS to the Page
+    //todo: Add js to warn about changing backend
 
     // export form elements
     $this->assign('elementNames', $this->getRenderableElementNames());
     parent::buildQuickForm();
   }
 
+  /**
+   * Handle the data submitted
+   */
   function postProcess() {
     $values = $this->exportValues();
-    $options = $this->getColorOptions();
-    CRM_Core_Session::setStatus(ts('You picked color "%1"', array(
-      1 => $options[$values['favorite_color']]
-    )));
+
+    if ($values['securefiles_backend_service'] != $this->backend_service_class) {
+      CRM_Core_BAO_Setting::setItem($values['securefiles_backend_service'],"securefiles", "securefiles_backend_service");
+      CRM_Utils_System::redirect(CRM_Utils_System::url('civicrm/securefiles/settings'));
+      return;
+    }
+
+    $this->backend_service->saveSettings($values);
+
     parent::postProcess();
   }
 
-  function getColorOptions() {
-    $options = array(
-      '' => ts('- select -'),
-      '#f00' => ts('Red'),
-      '#0f0' => ts('Green'),
-      '#00f' => ts('Blue'),
-      '#f0f' => ts('Purple'),
-    );
-    foreach (array('1','2','3','4','5','6','7','8','9','a','b','c','d','e') as $f) {
-      $options["#{$f}{$f}{$f}"] = ts('Grey (%1)', array(1 => $f));
-    }
-    return $options;
+  function validate() {
+    return $this->backend_service->validateSettings($this);
   }
 
   /**
