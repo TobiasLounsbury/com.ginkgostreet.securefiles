@@ -91,28 +91,31 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
   /*------------[ Below are The general Class functions for saving/loading and listing files ]------------*/
 
 
-  protected function uploadFile($file, $user = null) {
+  public function uploadFile($file, $user = null) {
     $s3 = $this->getS3Client();
     //$s3->putObject();
   }
-  protected function downloadFile($file, $user = null) {
+  public function downloadFile($file, $user = null) {
     $s3 = $this->getS3Client();
     //$s3->getObject();
+    return "This is a test";
   }
-  protected function deleteFile($file, $user = null) {
+  public function deleteFile($file, $user = null) {
     $s3 = $this->getS3Client();
     //$s3->deleteObject();
   }
-  protected function listFiles($user = null) {
+  public function listFiles($user = null) {
     $s3 = $this->getS3Client();
     //'Prefix' is used for specifying folder
     //$s3->listObjects();
   }
-  protected function fileMetadata($file, $user = null) {}
+  public function fileMetadata($file, $user = null) {}
 
 
 
-
+  function runForm(&$form) {
+    CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget_amazon_s3.js', 20, 'page-footer');
+  }
 
 
   /*------------[ Below are functions for working with the Settings form. ]------------*/

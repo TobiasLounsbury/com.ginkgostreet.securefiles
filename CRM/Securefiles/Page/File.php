@@ -34,14 +34,14 @@ class CRM_Securefiles_Page_File extends CRM_Core_Page_File {
 
 
           if ($action & CRM_Core_Action::DELETE) {
-            $backendService->deleteFile($details->uri, $eid);
+            $backendService->deleteFile($file['uri'], $eid);
           } else {
 
             //todo: Implement content-disposition
             //Todo: Handle remote content thumbnail
 
-            $content = $backendService->downloadFile($details->uri, $eid);
-            CRM_Utils_System::download($details->uri, $details->mime_type, $content);
+            $content = $backendService->downloadFile($file['uri'], $eid);
+            CRM_Utils_System::download($file['uri'], $file['mime_type'], $content);
           }
 
           //Skip delegating back to the core file handler
