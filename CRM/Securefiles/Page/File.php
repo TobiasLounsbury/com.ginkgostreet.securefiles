@@ -39,7 +39,7 @@ class CRM_Securefiles_Page_File extends CRM_Core_Page_File {
 
             //todo: Implement content-disposition
             //Todo: Handle remote content thumbnail
-            
+
             $content = $backendService->downloadFile($details->uri, $eid);
             CRM_Utils_System::download($details->uri, $details->mime_type, $content);
           }
