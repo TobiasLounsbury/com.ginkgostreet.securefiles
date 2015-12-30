@@ -2,8 +2,7 @@
 
 abstract class CRM_Securefiles_Backend {
 
-  /********[ Abstract functions the backend service must implement ]********/
-
+  /*-------[ Abstract functions the backend service must implement ]-------*/
 
   abstract protected function uploadFile($file, $user = null);
   abstract protected function downloadFile($file, $user = null);
@@ -17,6 +16,13 @@ abstract class CRM_Securefiles_Backend {
    * once the file is securely stored.
    */
   function cleanup() {}
+
+
+
+
+
+
+  /*--------[ Below are methods for interacting with the settings form ]--------*/
 
   /**
    * This form allows the Backend Service to
@@ -64,6 +70,11 @@ abstract class CRM_Securefiles_Backend {
    * Whether this form is valid
    */
   function validateSettings(&$form) { return true;}
+
+
+
+
+
 
 
   /*--------[ Below are the CustomField specific settings ]--------*/
@@ -130,6 +141,11 @@ abstract class CRM_Securefiles_Backend {
    * An instance of the form that is being created
    */
   function runForm( &$form ) {}
+
+
+
+
+
 
   /*--------[ Below are Static functions for global use ]--------*/
 
