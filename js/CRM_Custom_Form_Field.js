@@ -9,14 +9,22 @@
     widgetEnabledSection.after(widgetSettingsSection)
 
 
-    widgetEnabledSection.change(function() {
-      widgetSettingsSection.toggle( ($(this).is(":checked")) );
+    $("#use_securefiles").change(function() {
+      if($(this).is(":checked")) {
+        widgetSettingsSection.show();
+        $(".securefiles-custom-field-settings-container").slideDown();
+      } else {
+        $(".securefiles-custom-field-settings-container").slideUp(function() {
+          widgetSettingsSection.hide();
+        });
+      }
     });
 
 
     // wire up the field for HTML type to display the settings
     data_type_sel.change(function (){
-      widgetEnabledSection.toggle(($('#data_type_1').val() === 'File')).change();
+      widgetEnabledSection.toggle(($('#data_type_1').val() === 'File'));
+      $("#use_securefiles").change();
     });
 
     //Trigger changes so the proper fields are visible at load time.
