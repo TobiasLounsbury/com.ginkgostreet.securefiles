@@ -2,15 +2,95 @@
 
 require_once("aws/aws-autoloader.php");
 
+use GuzzleHttp\Promise;
+use GuzzleHttp\Promise\RejectedPromise;
+use Aws\Credentials\CredentialProvider;
+
 class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
-  private $AWS;
+  private $S3;
+  private $CONFIG;
   private $CredentialProvider;
 
 
-  /*
-   * Below are The general Class functions for saving/loading and listing files
+  /*------------[ S3 Specific Functions ]------------*/
+
+  /**
+   * Returns the Config settings
+   *
+   * @return mixed
    */
+  function getConfig() {
+    if(!$this->CONFIG) {
+      $this->CONFIG = CRM_Core_BAO_Setting::getItem("securefiles_s3");
+    }
+    return $this->CONFIG;
+  }
+
+  /**
+   * This function creates an AWS credential provider
+   *
+   * @return callable
+   */
+  private function getCredentials() {
+    return function () {
+
+      $config = $this->getConfig();
+
+      $key = $config["securefiles_s3_key"];
+      $secret = $config["securefiles_s3_secret"];
+
+      if ($key && $secret) {
+        return Promise\promise_for(
+          new Credentials($key, $secret, getenv(self::ENV_SESSION))
+        );
+      }
+
+      $msg = 'Could not retrieve credentials';
+      return new RejectedPromise(new CredentialsException($msg));
+    };
+  }
+
+  /**
+   * This function keeps state for the credential provider
+   * @return mixed
+   */
+  private function getCredentialProvider() {
+    if($this->CredentialProvider) {
+      return $this->CredentialProvider;
+    }
+
+    $provider = $this->getCredentials();
+    $this->CredentialProvider = CredentialProvider::memoize($provider);
+
+    return $this->CredentialProvider;
+  }
+
+  /**
+   * This method returns an instance of the Amazon S3 Client SDK
+   *
+   * @return \Aws\S3\S3Client
+   */
+  function getS3Client() {
+    if($this->S3) {
+      return $this->S3;
+    }
+
+    $config = $this->getConfig();
+
+    $this->S3 = new Aws\S3\S3Client([
+      'version' => 'latest',
+      'region'  => $config['securefiles_s3_region'],
+      'credentials' => $this->getCredentialProvider()
+    ]);
+
+    return $this->S3;
+  }
+
+
+  /*------------[ Below are The general Class functions for saving/loading and listing files ]------------*/
+
+
   protected function uploadFile($file, $user = null) {}
   protected function downloadFile($file, $user = null) {}
   protected function deleteFile($file, $user = null) {}
@@ -18,9 +98,11 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
   protected function fileMetadata($file, $user = null) {}
 
 
-  /*
-   * Below are functions for working with the Settings form.
-   */
+
+
+
+
+  /*------------[ Below are functions for working with the Settings form. ]------------*/
 
   /**
    * This form allows the Backend Service to
@@ -144,6 +226,11 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
    * Whether this form is valid
    */
   function validateSettings(&$form) { return true;}
+
+
+
+
+
 
 
   /*---------[ Below are the functions for modifying the individual field settings ]---------*/
