@@ -4,6 +4,13 @@ require_once("aws/aws-autoloader.php");
 
 class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
+  private $AWS;
+  private $CredentialProvider;
+
+
+  /*
+   * Below are The general Class functions for saving/loading and listing files
+   */
   protected function uploadFile($file, $user = null) {}
   protected function downloadFile($file, $user = null) {}
   protected function deleteFile($file, $user = null) {}
@@ -11,7 +18,20 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
   protected function fileMetadata($file, $user = null) {}
 
 
+  /*
+   * Below are functions for working with the Settings form.
+   */
 
+  /**
+   * This form allows the Backend Service to
+   * add custom fields for its configuration
+   * to the SecureFiles settings form
+   *
+   * Delegated from CRM_Securefiles_Form_Settings::buildQuickForm
+   *
+   * @param $form
+   * An instance of the Settings form being created
+   */
   function buildSettingsForm(&$form) {
     $form->add(
       'text', // field type
@@ -81,11 +101,27 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_amazon_s3.js', 20, 'page-footer');
   }
 
+  /**
+   * This functions returns the values for the settings form
+   *
+   * Delegated from CRM_Securefiles_Form_Settings::setDefaultValues
+   *
+   * @param $defaults
+   */
   function defaultSettings(&$defaults) {
     $defaults = array_merge($defaults, CRM_Core_BAO_Setting::getItem("securefiles_s3"));
     $defaults['securefiles_s3_use_encryption'] = CRM_Core_BAO_Setting::getItem("securefiles_s3", "securefiles_s3_use_encryption", null, 1);
   }
 
+  /**
+   * This function saves the values submitted via
+   *  The SecureFiles settings form
+   *
+   *  Delegated from CRM_Securefiles_Form_Settings::postProcess
+   *
+   * @param $values
+   *  The values submitted via the Securefiles settings form
+   */
   function saveSettings($values) {
     CRM_Core_BAO_Setting::setItem($values['securefiles_s3_region'],"securefiles_s3", "securefiles_s3_region");
     CRM_Core_BAO_Setting::setItem($values['securefiles_s3_key'],"securefiles_s3", "securefiles_s3_key");
@@ -95,13 +131,32 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     CRM_Core_BAO_Setting::setItem($values['securefiles_s3_encryption_type'],"securefiles_s3", "securefiles_s3_encryption_type");
     CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_use_sts", $values) ? $values['securefiles_s3_use_sts'] : 0),"securefiles_s3", "securefiles_s3_use_sts");
   }
+
+  /**
+   * This form validates the settings specific to this
+   * Backend Service
+   *
+   * Delegated from CRM_Securefiles_Form_Settings::validate
+   *
+   * @param $form
+   * An instance of the form that is being validated
+   * @return bool
+   * Whether this form is valid
+   */
   function validateSettings(&$form) { return true;}
+
+
+  /*---------[ Below are the functions for modifying the individual field settings ]---------*/
+
 
   /**
    * Add the filename field to the form.
    *
    * @param $form
+   * An instance of the form being created
    * @param $fieldNames
+   * An ordered array of the name of all fields
+   * the template should render.
    */
   function buildFieldSettingsForm(&$form, &$fieldNames) {
     $form->add(
