@@ -21,13 +21,12 @@ class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
     parent::preProcess();
     //Set the Backend Service in use currently.
     $this->backend_service_class = CRM_Core_BAO_Setting::getItem("securefiles", "securefiles_backend_service", null, "CRM_Securefiles_AmazonS3");
+    $this->backend_service = CRM_Securefiles_Backend::getBackendService();
 
-    if(class_exists($this->backend_service_class)) {
-      $this->backend_service = new $this->backend_service_class();
-    } else {
-      $this->backend_service = false;
+    if (!$this->backend_service) {
       CRM_Core_Session::setStatus(ts('We were unable to find the requested backend service: %1', array(1 => $this->backend_service_class)), "Error", "error");
     }
+
   }
 
   /**

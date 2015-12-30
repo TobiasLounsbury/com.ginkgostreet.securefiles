@@ -19,6 +19,14 @@ abstract class CRM_Securefiles_Backend {
   function validateFieldSettings( $formName, &$fields, &$files, &$form, &$errors ) {return true;}
   function runForm( &$form ) {}
 
+  static function getBackendService() {
+    $backend_service_class = CRM_Core_BAO_Setting::getItem("securefiles", "securefiles_backend_service", null, "CRM_Securefiles_AmazonS3");
 
+    if(class_exists($backend_service_class)) {
+      return new $backend_service_class();
+    } else {
+      return false;
+    }
+  }
 
 }
