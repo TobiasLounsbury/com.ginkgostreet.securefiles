@@ -1,5 +1,7 @@
 <?php
 
+require_once("aws/aws-autoloader.php");
+
 class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
   protected function uploadFile($file, $user = null) {}
@@ -7,6 +9,8 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
   protected function deleteFile($file, $user = null) {}
   protected function listFiles($user = null) {}
   protected function fileMetadata($file, $user = null) {}
+
+
 
   function buildSettingsForm(&$form) {
     $form->add(
@@ -92,5 +96,22 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_use_sts", $values) ? $values['securefiles_s3_use_sts'] : 0),"securefiles_s3", "securefiles_s3_use_sts");
   }
   function validateSettings(&$form) { return true;}
+
+  /**
+   * Add the filename field to the form.
+   *
+   * @param $form
+   * @param $fieldNames
+   */
+  function buildFieldSettingsForm(&$form, &$fieldNames) {
+    $form->add(
+      'text', // field type
+      'securefiles_s3_always_filename', // field name
+      ts('Always save this file with name?'), // field label
+      array("size" => 50),
+      false // is required
+    );
+    $fieldNames[] = "securefiles_s3_always_filename";
+  }
 
 }
