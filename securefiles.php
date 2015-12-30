@@ -1,6 +1,7 @@
 <?php
 
 require_once 'securefiles.civix.php';
+require_once 'securefiles.widget.php';
 
 /**
  * Implements hook_civicrm_config().
@@ -224,5 +225,42 @@ function securefiles_civicrm_navigationMenu( &$params ) {
         'active'     => 1
       )
     );
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_buildForm
+ *
+ * Handler for buildForm hook.
+ */
+function securefiles_civicrm_buildForm($formName, &$form) {
+  $f = '_' . __FUNCTION__ . '_' . $formName;
+  if (function_exists($f)) {
+    $f($formName, $form);
+  }
+  _securefiles_addWidgetToForm($form);
+}
+
+/**
+ * Implementation of hook_civicrm_pageRun
+ *
+ * Handler for pageRun hook.
+ */
+function securefiles_civicrm_pageRun(&$page) {
+  $f = '_' . __FUNCTION__ . '_' . get_class($page);
+  if (function_exists($f)) {
+    $f($page);
+  }
+}
+
+/**
+ * Implementation of hook_civicrm_postProcess
+ *
+ * Handler for postProcess hook.
+ */
+function securefiles_civicrm_postProcess($formName, &$form) {
+  $f = '_' . __FUNCTION__ . '_' . $formName;
+  if (function_exists($f)) {
+    $f($formName, $form);
   }
 }
