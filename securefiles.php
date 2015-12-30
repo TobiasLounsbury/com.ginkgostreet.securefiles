@@ -264,3 +264,15 @@ function securefiles_civicrm_postProcess($formName, &$form) {
     $f($formName, $form);
   }
 }
+
+/**
+ * Implementation of hook_civicrm_validateForm
+ *
+ * Handler for validateForm hook.
+ */
+function securefiles_civicrm_validateForm( $formName, &$fields, &$files, &$form, &$errors ) {
+  $f = '_' . __FUNCTION__ . '_' . $formName;
+  if (function_exists($f)) {
+    $f( $formName, $fields, $files, $form, $errors );
+  }
+}

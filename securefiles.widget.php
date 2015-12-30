@@ -9,8 +9,8 @@
 function _securefiles_civicrm_buildForm_CRM_Custom_Form_Field($formName, CRM_Core_Form &$form) {
   // set default value for the checkbox
   $field_id = $form->getVar('_id');
-  //$widgetized_fields = _securefiles_get_secure_enabled_fields();
-  //$form->_defaultValues['use_securefiles'] = in_array($field_id, $widgetized_fields);
+  $enabled_fields = _securefiles_get_secure_enabled_fields();
+  $form->_defaultValues['use_securefiles'] = in_array($field_id, $enabled_fields);
 
   // add checkbox to the form object
   $form->add('checkbox', 'use_securefiles', ts('Store using SecureFiles'));
@@ -21,9 +21,12 @@ function _securefiles_civicrm_buildForm_CRM_Custom_Form_Field($formName, CRM_Cor
   ));
 
   $secureFileElements = array();
-
-  //todo: Snap into backend service
-
+  //Let the Backend service add fields if it wants/needs to
+  $backendService = CRM_Securefiles_Backend::getBackendService();
+  if($backendService) {
+    $backendService->buildFieldSettingsForm($form, $secureFileElements);
+  }
+  //Assign our custom field names to the form so the template can render them.
   $form->assign("secureFileElements", $secureFileElements);
 
   // reposition and show/hide checkbox
@@ -40,7 +43,12 @@ function _securefiles_civicrm_postProcess_CRM_Custom_Form_Field($formName, &$for
   $custom_field_id = $form->getVar('_id');
 
   $verb = $use_securefiles ? CRM_Core_Action::ADD : CRM_Core_Action::DELETE;
-  //_securefiles_update_enabled_fields(array($verb => $custom_field_id));
+  _securefiles_update_enabled_fields(array($verb => $custom_field_id));
+  //Allow the Backend service to save settings if it needs to
+  $backendService = CRM_Securefiles_Backend::getBackendService();
+  if($backendService) {
+    $backendService->saveFieldSettings($form, $custom_field_id);
+  }
 }
 
 /**
@@ -50,6 +58,18 @@ function _securefiles_civicrm_postProcess_CRM_Custom_Form_Field($formName, &$for
  */
 function _securefiles_civicrm_buildForm_CRM_Profile_Form_Edit($formName, CRM_Core_Form &$form) {
   $form->hasSecureFiles = TRUE;
+}
+
+/**
+ * Delegated implementation of hook_civicrm_buildForm
+ *
+ * Registers the form to allow use of the volunteer slider widget.
+ */
+function _securefiles_civicrm_validateForm_CRM_Profile_Form_Edit($formName, &$fields, &$files, &$form, &$errors) {
+  $backendService = CRM_Securefiles_Backend::getBackendService();
+  if($backendService) {
+    return $backendService->validateFieldSettings($formName, $fields, $files, $form, $errors);
+  }
 }
 
 /**
@@ -79,6 +99,12 @@ function _securefiles_addWidgetToForm(CRM_Core_Form &$form) {
       $ccr = CRM_Core_Resources::singleton();
       $ccr->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget.js');
       $ccr->addStyleFile('com.ginkgostreet.securefiles', 'css/securefiles_widget.css');
+
+      //Give the Backend Service a chance to add additional resources to the form.
+      $backendService = CRM_Securefiles_Backend::getBackendService();
+      if($backendService) {
+        return $backendService->runForm($form);
+      }
     }
   }
 }
