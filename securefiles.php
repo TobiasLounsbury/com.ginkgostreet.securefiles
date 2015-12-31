@@ -238,7 +238,11 @@ function securefiles_civicrm_buildForm($formName, &$form) {
   if (function_exists($f)) {
     $f($formName, $form);
   }
-  _securefiles_addWidgetToForm($form);
+
+  //This cuts out all the forms that couldn't have a file field
+  if(array_key_exists("enctype", $form->_attributes) && $form->_attributes['enctype'] == "multipart/form-data") {
+    _securefiles_addWidgetToForm($form);
+  }
 }
 
 /**
@@ -259,8 +263,9 @@ function securefiles_civicrm_pageRun(&$page) {
  * Handler for postProcess hook.
  */
 function securefiles_civicrm_postProcess($formName, &$form) {
+  //_submitFiles is not empty
   $f = '_' . __FUNCTION__ . '_' . $formName;
-  if (function_exists($f)) {
+  if (function_exists($f)) {  
     $f($formName, $form);
   }
 }
@@ -276,3 +281,5 @@ function securefiles_civicrm_validateForm( $formName, &$fields, &$files, &$form,
     $f( $formName, $fields, $files, $form, $errors );
   }
 }
+
+

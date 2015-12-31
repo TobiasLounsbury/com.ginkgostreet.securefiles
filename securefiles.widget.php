@@ -56,15 +56,6 @@ function _securefiles_civicrm_postProcess_CRM_Custom_Form_Field($formName, &$for
  *
  * Registers the form to allow use of the volunteer slider widget.
  */
-function _securefiles_civicrm_buildForm_CRM_Profile_Form_Edit($formName, CRM_Core_Form &$form) {
-  $form->hasSecureFiles = TRUE;
-}
-
-/**
- * Delegated implementation of hook_civicrm_buildForm
- *
- * Registers the form to allow use of the volunteer slider widget.
- */
 function _securefiles_civicrm_validateForm_CRM_Profile_Form_Edit($formName, &$fields, &$files, &$form, &$errors) {
   $backendService = CRM_Securefiles_Backend::getBackendService();
   if($backendService) {
@@ -79,32 +70,31 @@ function _securefiles_civicrm_validateForm_CRM_Profile_Form_Edit($formName, &$fi
  * @param CRM_Core_Form $form
  */
 function _securefiles_addWidgetToForm(CRM_Core_Form &$form) {
-  if (isset($form->hasSecureFiles) && $form->hasSecureFiles) {
-    $db_enabled_fields = _securefiles_get_secure_enabled_fields();
-    foreach ($db_enabled_fields as &$value) {
-      $value = 'custom_' . $value;
-    }
+  $includeWidget = false;
+  $enabled_fields = _securefiles_get_secure_enabled_fields();
 
-    // Compare the global list of widget-enabled fields with the list of elements in this
-    // form to get a list of widget-enabled fields in this form.
-    $form_element_names = array_flip($form->_elementIndex);
-    $enabled_fields = array_intersect($form_element_names, $db_enabled_fields);
-
-    foreach ($enabled_fields as $field_name) {
-      $css_classes = CRM_Utils_Array::value('class', $form->getElement($field_name)->_attributes);
-      $form->getElement($field_name)->_attributes['class'] = trim($css_classes . ' securefiles_upload');
-    }
-
-    if (count($enabled_fields)) {
-      $ccr = CRM_Core_Resources::singleton();
-      $ccr->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget.js');
-      $ccr->addStyleFile('com.ginkgostreet.securefiles', 'css/securefiles_widget.css');
-
-      //Give the Backend Service a chance to add additional resources to the form.
-      $backendService = CRM_Securefiles_Backend::getBackendService();
-      if($backendService) {
-        return $backendService->runForm($form);
+  foreach ($form->_elements as &$field) {
+    if($field->_type == "file") {
+      $fieldId = str_replace("custom_", "", $field->_attributes['name']);
+      $fieldId = preg_replace('/_.*/', "", $fieldId);
+      if (in_array($fieldId, $enabled_fields)) {
+        $css_classes = CRM_Utils_Array::value('class', $field->_attributes);
+        $field->_attributes['class'] = trim($css_classes . ' securefiles_upload');
+        $includeWidget = true;
       }
+    }
+  }
+
+
+  if ($includeWidget) {
+    $ccr = CRM_Core_Resources::singleton();
+    $ccr->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget.js');
+    $ccr->addStyleFile('com.ginkgostreet.securefiles', 'css/securefiles_widget.css');
+
+    //Give the Backend Service a chance to add additional resources to the form.
+    $backendService = CRM_Securefiles_Backend::getBackendService();
+    if($backendService) {
+      return $backendService->runForm($form);
     }
   }
 }
