@@ -91,11 +91,16 @@ function _securefiles_addWidgetToForm(CRM_Core_Form &$form) {
     $ccr->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget.js');
     $ccr->addStyleFile('com.ginkgostreet.securefiles', 'css/securefiles_widget.css');
 
+    $clientSideVars = array();
+    $clientSideVars['currentContactId'] = CRM_Core_Session::singleton()->getLoggedInContactID();
+
     //Give the Backend Service a chance to add additional resources to the form.
     $backendService = CRM_Securefiles_Backend::getBackendService();
     if($backendService) {
-      return $backendService->runForm($form);
+      $backendService->runForm($form, $clientSideVars);
     }
+
+    $ccr->addScript("CRM.$(function ($) { CRM.SecureFilesWidget = ".json_encode($clientSideVars)."; });", 1, 'page-body');
   }
 }
 

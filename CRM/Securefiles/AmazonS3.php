@@ -113,7 +113,8 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
 
 
-  function runForm(&$form) {
+  function runForm(&$form, &$clientSideVars) {
+    CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/aws-sdk-2.2.26.min.js', 18, 'page-footer');
     CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget_amazon_s3.js', 20, 'page-footer');
   }
 
