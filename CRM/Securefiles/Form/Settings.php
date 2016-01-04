@@ -101,6 +101,7 @@ class CRM_Securefiles_Form_Settings extends CRM_Core_Form {
     }
 
     parent::postProcess();
+    CRM_Core_Session::setStatus(ts("Settings Saved"), '', 'success');
   }
 
   function validate() {

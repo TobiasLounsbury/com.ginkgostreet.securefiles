@@ -273,7 +273,25 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
    * @return bool
    * Whether this form is valid
    */
-  function validateSettings(&$form) { return true;}
+  function validateSettings(&$form) {
+    $valid = true;
+
+    //If using STS, make sure we have the key and secret
+    if (array_key_exists("securefiles_s3_use_sts", $form->_submitValues) && $form->_submitValues['securefiles_s3_use_sts']) {
+
+      if (!array_key_exists("securefiles_s3_sts_key", $form->_submitValues) || !$form->_submitValues['securefiles_s3_sts_key']) {
+        $form->_errors["securefiles_s3_sts_key"] = "When using client side tokens, the clientkey is required";
+        $valid = false;
+      }
+      if (!array_key_exists("securefiles_s3_sts_secret", $form->_submitValues) || !$form->_submitValues['securefiles_s3_sts_secret']) {
+        $form->_errors["securefiles_s3_sts_secret"] = "When using client side tokens, the clientkey is required";
+        $valid = false;
+      }
+
+    }
+
+    return $valid;
+  }
 
 
 
