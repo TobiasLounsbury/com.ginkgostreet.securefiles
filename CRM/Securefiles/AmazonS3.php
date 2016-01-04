@@ -132,11 +132,25 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
    * An instance of the Settings form being created
    */
   function buildSettingsForm(&$form) {
+    
+    $regions = array(
+      "us-east-1" => "us-east-1: US East (N. Virginia)",
+      "us-west-2" => "us-west-2: US West (Oregon)",
+      "us-west-1" => "us-west-1: US West (N. California)",
+      "eu-west-1" => "eu-west-1: EU (Ireland)",
+      "eu-central-1" => "eu-central-1: EU (Frankfurt)",
+      "ap-southeast-1" => "ap-southeast-1: Asia Pacific (Singapore)",
+      "ap-southeast-2" => "ap-southeast-2: Asia Pacific (Sydney)",
+      "ap-northeast-1" => "ap-northeast-1: Asia Pacific (Tokyo)",
+      "sa-east-1" => "sa-east-1: South America (Sao Paulo)"
+    );
+
+
     $form->add(
-      'text', // field type
+      'select', // field type
       'securefiles_s3_region', // field name
       ts('Amazon S3 Region'), // field label
-      array("size" => 25),
+      $regions,
       true // is required
     );
 
@@ -173,7 +187,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     $form->add(
       'select', // field type
       'securefiles_s3_encryption_type', // field name
-      'Encryption Method', // field label
+      ts('Encryption Method'), // field label
       array("SSE-S3" => "SSE-S3", "SSE-KMS" => "SSE-KMS", "SSE-C" => "SSE-C"),
       true // is required
     );
@@ -195,6 +209,21 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       ts('Use Client-side Auth Tokens')
     );
 
+    $form->add(
+      'text', // field type
+      'securefiles_s3_sts_key', // field name
+      ts('Amazon S3 API Key for Client-side Requests'), // field label
+      array("size" => 75),
+      false // is required
+    );
+
+    $form->add(
+      'text', // field type
+      'securefiles_s3_sts_secret', // field name
+      ts('Amazon S3 API Secret for Client-side Requests'), // field label
+      array("size" => 75),
+      false // is required
+    );
 
     //Add Amazon S3 specific settings JS
     CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_settings_amazon_s3.js', 20, 'page-footer');
@@ -229,6 +258,8 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_use_encryption", $values) ? $values['securefiles_s3_use_encryption'] : 0),"securefiles_s3", "securefiles_s3_use_encryption");
     CRM_Core_BAO_Setting::setItem($values['securefiles_s3_encryption_type'],"securefiles_s3", "securefiles_s3_encryption_type");
     CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_use_sts", $values) ? $values['securefiles_s3_use_sts'] : 0),"securefiles_s3", "securefiles_s3_use_sts");
+    CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_sts_key", $values) ? $values['securefiles_s3_sts_key'] : ""),"securefiles_s3", "securefiles_s3_sts_key");
+    CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_sts_secret", $values) ? $values['securefiles_s3_sts_secret'] : ""),"securefiles_s3", "securefiles_s3_sts_secret");
   }
 
   /**
