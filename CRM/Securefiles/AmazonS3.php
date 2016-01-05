@@ -87,6 +87,25 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     return $this->S3;
   }
 
+  function getSTSToken() {
+    $config = $this->getConfig();
+
+    $key = $config["securefiles_s3_sts_key"];
+    $secret = $config["securefiles_s3_sts_secret"];
+
+    $stsClient = new \Aws\Sts\StsClient([
+      'region' => 'us-east-1',
+      'version' => '2011-06-15',
+      'credentials' => [
+        'key'    => $key,
+        'secret' => $secret
+      ]
+    ]);
+
+    $results = $stsClient->getSessionToken();
+    $creds = $results['Credentials'];
+    return $creds;
+  }
 
   /*------------[ Below are The general Class functions for saving/loading and listing files ]------------*/
 
@@ -96,9 +115,13 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     //$s3->putObject();
   }
   public function downloadFile($file, $user = null) {
+    $config = $this->getConfig();
     $s3 = $this->getS3Client();
-    //$s3->getObject();
-    return "This is a test";
+    $result = $s3->getObject(array(
+      'Bucket' => $config['securefiles_s3_bucket'],
+      'Key'    => $file
+    ));
+    return $result['Body'];
   }
   public function deleteFile($file, $user = null) {
     $s3 = $this->getS3Client();
@@ -113,9 +136,30 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
 
 
-  function runForm(&$form, &$clientSideVars) {
-    CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/aws-sdk-2.2.26.min.js', 18, 'page-footer');
+  function runForm(&$form, &$clientSideVars, $fields) {
     CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget_amazon_s3.js', 20, 'page-footer');
+
+    $config = $this->getConfig();
+    $clientSideVars['useSTS'] = ($config['securefiles_s3_use_sts'] == 1);
+    if($config['securefiles_s3_use_sts']) {
+      CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/aws-sdk-2.2.26.min.js', 18, 'page-footer');
+      $clientSideVars['Credentials'] = $this->getSTSToken();
+      $clientSideVars['S3Region'] = $config['securefiles_s3_region'];
+      $clientSideVars['S3Bucket'] = $config['securefiles_s3_bucket'];
+
+
+      //Add the field configs
+      $fieldConfigs = array();
+      foreach($fields as $index => $fieldId) {
+        $fieldName = $form->_elements[$index]->_attributes['name'];
+        $fieldConfigs[$fieldName] = array();
+        $fieldConfigs[$fieldName]['id'] = $fieldId;
+        $fieldConfigs[$fieldName]['name'] = $fieldName;
+        $fieldConfigs[$fieldName]['filename'] = CRM_Core_BAO_Setting::getItem("securefiles_s3_fields", "securefiles_s3_".$fieldId."_always_filename", false);
+      }
+
+      $clientSideVars['S3Fields'] = $fieldConfigs;
+    }
   }
 
 
@@ -132,7 +176,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
    * An instance of the Settings form being created
    */
   function buildSettingsForm(&$form) {
-    
+
     $regions = array(
       "us-east-1" => "us-east-1: US East (N. Virginia)",
       "us-west-2" => "us-west-2: US West (Oregon)",
@@ -320,6 +364,11 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       false // is required
     );
     $fieldNames[] = "securefiles_s3_always_filename";
+  }
+
+
+  function saveFieldSettings(&$form, $fieldId) {
+    CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_always_filename", $form->_submitValues) ? $form->_submitValues['securefiles_s3_always_filename'] : ""),"securefiles_s3_fields", "securefiles_s3_".$fieldId."_always_filename");
   }
 
 }

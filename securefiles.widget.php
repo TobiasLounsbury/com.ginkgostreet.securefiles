@@ -72,12 +72,14 @@ function _securefiles_civicrm_validateForm_CRM_Profile_Form_Edit($formName, &$fi
 function _securefiles_addWidgetToForm(CRM_Core_Form &$form) {
   $includeWidget = false;
   $enabled_fields = _securefiles_get_secure_enabled_fields();
+  $secureFields = array();
 
-  foreach ($form->_elements as &$field) {
+  foreach ($form->_elements as $index => &$field) {
     if($field->_type == "file") {
       $fieldId = str_replace("custom_", "", $field->_attributes['name']);
       $fieldId = preg_replace('/_.*/', "", $fieldId);
       if (in_array($fieldId, $enabled_fields)) {
+        $secureFields[$index] = $fieldId;
         $css_classes = CRM_Utils_Array::value('class', $field->_attributes);
         $field->_attributes['class'] = trim($css_classes . ' securefiles_upload');
         $includeWidget = true;
@@ -97,7 +99,7 @@ function _securefiles_addWidgetToForm(CRM_Core_Form &$form) {
     //Give the Backend Service a chance to add additional resources to the form.
     $backendService = CRM_Securefiles_Backend::getBackendService();
     if($backendService) {
-      $backendService->runForm($form, $clientSideVars);
+      $backendService->runForm($form, $clientSideVars, $secureFields);
     }
 
     $ccr->addScript("CRM.$(function ($) { CRM.SecureFilesWidget = ".json_encode($clientSideVars)."; });", 1, 'page-body');

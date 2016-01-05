@@ -140,7 +140,7 @@ abstract class CRM_Securefiles_Backend {
    * @param $form
    * An instance of the form that is being created
    */
-  function runForm( &$form, &$clientSideVars ) {}
+  function runForm( &$form, &$clientSideVars, $fields) {}
 
 
 
