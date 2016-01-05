@@ -143,6 +143,35 @@ abstract class CRM_Securefiles_Backend {
   function runForm( &$form, &$clientSideVars, $fields) {}
 
 
+  /**
+   * Validate a form that was submitted with securefile enabled widgets
+   * 
+   * Delegated from _securefiles_validateWidgetForm
+   * which is an implementation of hook_civicrm_validateForm
+   *
+   * @param $metadata
+   * @param $formName
+   * @param $fields
+   * @param $files
+   * @param $form
+   * @param $errors
+   */
+  function validateWidgetForm($metadata, $formName, &$fields, &$files, &$form, &$errors) {}
+
+
+  /**
+   * Post process a form that was submitted with a securefiles enabled widget
+   *
+   * Delegated from _securefiles_postProcessWidgetForm
+   * which is an implementation of hook_civicrm_postProcess
+   *
+   * @param $metadata
+   * The decoded metadata submitted via the front end.
+   * @param $formName
+   * @param $form
+   */
+  function postProcessWidgetForm($metadata, $formName, &$form) {}
+
 
 
 
