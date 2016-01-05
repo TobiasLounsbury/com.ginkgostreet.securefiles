@@ -16,8 +16,7 @@ CRM.$(function ($) {
       if (err) {
         dfd.reject(err);
       } else {
-        console.log("It Worked!", data);
-        dfd.resolve(data);
+        dfd.resolve({"field": field, "name": key, "mime-type": file.type, "data": data});
       }
     });
 
@@ -47,9 +46,10 @@ CRM.$(function ($) {
           }
         });
 
-        $.when.apply($, CRM.SecureFilesWidget.promises).done(function(d) {
-          console.log(d);
+        $.when.apply($, CRM.SecureFilesWidget.promises).done(function(data) {
           CRM.SecureFilesWidget.formComplete = true;
+          formObj.find(".securefiles-metadata").val(JSON.stringify(data));
+          //Todo: Clear the file field so it doesn't attempt to upload
           formObj.submit();
         }).fail(function(err) {
           console.log(err);
@@ -81,7 +81,6 @@ CRM.$(function ($) {
         Bucket: CRM.SecureFilesWidget.S3Bucket
       }
     });
-
   }
 
 });
