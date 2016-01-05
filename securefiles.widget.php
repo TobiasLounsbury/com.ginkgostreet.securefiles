@@ -64,12 +64,14 @@ function _securefiles_civicrm_validateForm_CRM_Profile_Form_Edit($formName, &$fi
 }
 
 /**
- * For forms which have registered as slider-enabled, add the JS and CSS necessary
- * to render the slider widget(s).
+ * Check to see if we have any enabled fields on this
+ * form, and if so, set the required class, add them
+ * to the list, notify the backend service, and add
+ * the required JS and CSS to the page.
  *
  * @param CRM_Core_Form $form
  */
-function _securefiles_addWidgetToForm(CRM_Core_Form &$form) {
+function _securefiles_addWidgetToForm(&$form) {
   $includeWidget = false;
   $enabled_fields = _securefiles_get_secure_enabled_fields();
   $secureFields = array();
@@ -103,6 +105,53 @@ function _securefiles_addWidgetToForm(CRM_Core_Form &$form) {
     }
 
     $ccr->addScript("CRM.$(function ($) { CRM.SecureFilesWidget = ".json_encode($clientSideVars)."; });", 1, 'page-body');
+  }
+}
+
+/**
+ * This function allows the backend service to
+ * take action after a form has been submitted
+ * with securefiles enabled widgets
+ *
+ * Delegated from: securefiles_civicrm_postProcess
+ *
+ * @param $metadata
+ *  The metadata that was submittted via this form
+ * @param $formName
+ *  The name of the Form that is being Processed
+ * @param $form
+ *  A reference to the form object
+ */
+function _securefiles_postProcessWidgetForm($metadata, $formName, &$form) {
+
+  //Give the Backend Service a chance deal with submission
+  $backendService = CRM_Securefiles_Backend::getBackendService();
+  if($backendService) {
+    $backendService->postProcessWidgetForm($metadata, $formName, $form);
+  }
+
+}
+
+/**
+ * This function allows the backend service
+ * to do form validation on a form that was
+ * submitted with securefiles enabled widgets
+ *
+ * Delegated from: securefiles_civicrm_validateForm
+ *
+ * @param $metadata
+ * Metadata for the form that was submitted
+ * @param $formName
+ * @param $fields
+ * @param $files
+ * @param $form
+ * @param $errors
+ */
+function _securefiles_validateWidgetForm($metadata, $formName, &$fields, &$files, &$form, &$errors) {
+  //Give the Backend Service a chance validate submission
+  $backendService = CRM_Securefiles_Backend::getBackendService();
+  if($backendService) {
+    $backendService->validateWidgetForm($metadata, $formName, $fields, $files, $form, $errors);
   }
 }
 
