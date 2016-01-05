@@ -10,9 +10,9 @@ CRM.$(function ($) {
       Key: key,
       ContentType: file.type,
       Body: file
-      //todo: Add server-side Encryption Settings
     };
 
+    //server-side Encryption Settings
     if(CRM.SecureFilesWidget.useEncryption) {
       params.ServerSideEncryption = CRM.SecureFilesWidget.encryptionType;
     }
