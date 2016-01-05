@@ -136,6 +136,10 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
 
 
+
+
+
+
   function runForm(&$form, &$clientSideVars, $fields) {
     CRM_Core_Resources::singleton()->addScriptFile('com.ginkgostreet.securefiles', 'js/securefiles_widget_amazon_s3.js', 20, 'page-footer');
 
@@ -146,6 +150,8 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       $clientSideVars['Credentials'] = $this->getSTSToken();
       $clientSideVars['S3Region'] = $config['securefiles_s3_region'];
       $clientSideVars['S3Bucket'] = $config['securefiles_s3_bucket'];
+      $clientSideVars['useEncryption'] = ($config['securefiles_s3_use_encryption'] == 1);;
+      $clientSideVars['encryptionType'] = $config['securefiles_s3_encryption_type'];
 
 
       //Add the field configs
@@ -160,6 +166,24 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
       $clientSideVars['S3Fields'] = $fieldConfigs;
     }
+  }
+
+  function validateWidgetForm($metadata, $formName, &$fields, &$files, &$form, &$errors) {}
+
+  function postProcessWidgetForm($metadata, $formName, &$form) {
+
+    //Get the custom value
+    //$params['id'] = custom_field_id
+    //$params['entity_id'] = userId
+
+
+    //find the file if it exists
+
+    //save the file entry
+
+    //Update the custom value lookup if needed
+
+
   }
 
 
@@ -232,7 +256,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       'select', // field type
       'securefiles_s3_encryption_type', // field name
       ts('Encryption Method'), // field label
-      array("SSE-S3" => "SSE-S3", "SSE-KMS" => "SSE-KMS", "SSE-C" => "SSE-C"),
+      array("AES256" => "AES256", "aws:kms" => "aws:kms"),
       true // is required
     );
 

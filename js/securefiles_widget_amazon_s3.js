@@ -12,11 +12,20 @@ CRM.$(function ($) {
       Body: file
       //todo: Add server-side Encryption Settings
     };
+
+    if(CRM.SecureFilesWidget.useEncryption) {
+      params.ServerSideEncryption = CRM.SecureFilesWidget.encryptionType;
+    }
+
     CRM.SecureFilesWidget.Bucket.putObject(params, function (err, data) {
       if (err) {
         dfd.reject(err);
       } else {
-        dfd.resolve({"field": field, "name": key, "mime-type": file.type, "data": data});
+        //Unset the file
+        $(field).val("");
+
+        //Resolve this promise
+        dfd.resolve({"field": $(field).attr("name"), "name": key, "mime-type": file.type, "data": data});
       }
     });
 
@@ -40,7 +49,7 @@ CRM.$(function ($) {
             var fileTitle = CRM.SecureFilesWidget.S3Fields[$(this).attr("name")].filename || this.files[i].name;
             var objKey = CRM.SecureFilesWidget.currentContactId + '/' + fileTitle;
 
-            CRM.SecureFilesWidget.promises.push(uploadFileWithPromise(this.files[i], objKey, $(this).attr("name")));
+            CRM.SecureFilesWidget.promises.push(uploadFileWithPromise(this.files[i], objKey, this));
 
 
           }
