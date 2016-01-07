@@ -25,7 +25,7 @@ CRM.$(function ($) {
         $(field).val("");
 
         //Resolve this promise
-        dfd.resolve({"field": $(field).attr("name"), "name": key, "mime-type": file.type, "data": data});
+        dfd.resolve({"field": $(field).attr("name"), "name": key, "mime_type": file.type, "data": data});
       }
     });
 
