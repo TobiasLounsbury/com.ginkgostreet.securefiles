@@ -3,10 +3,9 @@
 
 class CRM_Securefiles_Permission extends CRM_Core_Permission {
 
+  const LIST_SECURE_FILES = 'securefiles_list_files'; // A number unused by CRM_Core_Action
 
   public static function getSecurefilePermissions(&$permissions) {
-    // VOL-71: Until the Joomla/Civi integration is fixed, don't declare new perms
-    // for Joomla installs
     if (CRM_Core_Config::singleton()->userPermissionClass->isModulePermissionSupported()) {
 
       $prefix = ts('SecureFileStorage', array('domain' => 'com.ginkgostreet.securefiles')) . ': ';
@@ -39,6 +38,14 @@ class CRM_Securefiles_Permission extends CRM_Core_Permission {
           $prefix . ts('list own secure files', array('domain' => 'com.ginkgostreet.securefiles')),
           ts('Allows a user to view a list of all secure files', array('domain' => 'com.ginkgostreet.securefiles')),
         ),
+        'delete own secure files' => array(
+          $prefix . ts('delete own secure files', array('domain' => 'com.ginkgostreet.securefiles')),
+          ts('Allows a user to delete files they previously uploaded', array('domain' => 'com.ginkgostreet.securefiles')),
+        ),
+        'delete all secure files' => array(
+          $prefix . ts('delete all secure files', array('domain' => 'com.ginkgostreet.securefiles')),
+          ts('Allows a user to delete secure files for any user', array('domain' => 'com.ginkgostreet.securefiles')),
+        ),
       );
 
       $permissions = array_merge($permissions, $newPerms);
@@ -48,59 +55,51 @@ class CRM_Securefiles_Permission extends CRM_Core_Permission {
 
   public static function checkFilePerms($op, $file, $user) {
 
-    /*
     $opsRequiringProjectId = array(CRM_Core_Action::UPDATE, CRM_Core_Action::DELETE);
     if (in_array($op, $opsRequiringProjectId) && empty($projectId)) {
       CRM_Core_Error::fatal('Missing required parameter Project ID');
     }
 
     $contactId = CRM_Core_Session::getLoggedInContactID();
+    $checkUserRelationship = !($contactId == $user);
 
     switch ($op) {
       case CRM_Core_Action::ADD:
-        return self::check('create volunteer projects');
-
       case CRM_Core_Action::UPDATE:
-        if (self::check('edit all volunteer projects')) {
-          return TRUE;
+        if ($checkUserRelationship) {
+          return self::check('upload others secure files');
+          //Todo: Check relationships and allow for permissioned relationships
+        } else {
+          return self::check('upload own secure files');
         }
-
-        $projectOwners = CRM_Volunteer_BAO_Project::getContactsByRelationship($projectId, 'volunteer_owner');
-        if (self::check('edit own volunteer projects')
-          && in_array($contactId, $projectOwners)) {
-          return TRUE;
-        }
-        break;
+      break;
       case CRM_Core_Action::DELETE:
-        if (self::check('delete all volunteer projects')) {
-          return TRUE;
-        }
-
-        $projectOwners = CRM_Volunteer_BAO_Project::getContactsByRelationship($projectId, 'volunteer_owner');
-        if (self::check('delete own volunteer projects')
-          && in_array($contactId, $projectOwners)) {
-          return TRUE;
+        if ($checkUserRelationship) {
+          return self::check("delete all secure files");
+          //Todo: Check relationships and allow for permissioned relationships
+        } else {
+          return self::check("delete own secure files");
         }
         break;
       case CRM_Core_Action::VIEW:
-        if (self::check('register to volunteer') || self::check('edit all volunteer projects')) {
-          return TRUE;
+        if ($checkUserRelationship) {
+          return self::check('view all secure files');
+          //Todo: Check relationships and allow for permissioned relationships
+        } else {
+          return self::check('view own secure files');
         }
         break;
-      case self::VIEW_ROSTER:
-        if (self::check('edit all volunteer projects')) {
-          return TRUE;
-        }
-
-        $projectManagers = CRM_Volunteer_BAO_Project::getContactsByRelationship($projectId, 'volunteer_manager');
-        if (in_array($contactId, $projectManagers)) {
-          return TRUE;
+      case self::LIST_SECURE_FILES:
+        if ($checkUserRelationship) {
+          return self::check('list all secure files');
+          //Todo: Check relationships and allow for permissioned relationships
+        } else {
+          return self::check('list own secure files');
         }
         break;
     }
 
     return FALSE;
   }
-*/
 
 }
