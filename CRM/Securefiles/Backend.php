@@ -8,7 +8,7 @@ abstract class CRM_Securefiles_Backend {
   abstract public function downloadFile($file, $user = null);
   abstract public function deleteFile($file, $user = null);
   abstract public function listFiles($user = null);
-  abstract public function fileMetadata($file, $user = null);
+  abstract public function fileMetadata($file, $field);
 
 
   /**
@@ -145,7 +145,7 @@ abstract class CRM_Securefiles_Backend {
 
   /**
    * Validate a form that was submitted with securefile enabled widgets
-   * 
+   *
    * Delegated from _securefiles_validateWidgetForm
    * which is an implementation of hook_civicrm_validateForm
    *
