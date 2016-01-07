@@ -298,22 +298,3 @@ function securefiles_civicrm_validateForm( $formName, &$fields, &$files, &$form,
     _securefiles_validateWidgetForm($metadata, $formName, $fields, $files, $form, $errors );
   }
 }
-
-
-function securefiles_civicrm_post($op,$objectName, $objectId, &$objectRef) {
-  //Use to move files to better "folders" if it was uploaded anonymously.
-  error_log("test");
-}
-function securefiles_civicrm_pre($op, $objectName, $id, &$params) {
-  //Use when deleting files
-  error_log("test");
-}
-function securefiles_civicrm_custom( $op, $groupID, $entityID, &$params ) {
-  //$params['custom_field_id']
-  //value: ginkgo_logo_365931d645c97f261342b1b4b050784f.png
-  error_log("test");
-}
-
-function securefiles_civicrm_apiWrappers(&$wrappers, $apiRequest) {
-  error_log("test");
-}
