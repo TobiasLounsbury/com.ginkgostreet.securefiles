@@ -20,6 +20,9 @@ abstract class CRM_Securefiles_Backend {
 
 
 
+  /*--------[ Permission Function ]--------*/
+
+  function checkPermissions($op, $file, $user) {return true;}
 
 
   /*--------[ Below are methods for interacting with the settings form ]--------*/
