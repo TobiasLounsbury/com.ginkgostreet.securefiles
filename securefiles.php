@@ -157,44 +157,7 @@ function securefiles_Securefiles_getBackendServices(&$services) {
  * @param array $permissions Does not contain core perms -- only extension-defined perms.
  */
 function securefiles_civicrm_permission(array &$permissions) {
-  // VOL-71: Until the Joomla/Civi integration is fixed, don't declare new perms
-  // for Joomla installs
-  if (CRM_Core_Config::singleton()->userPermissionClass->isModulePermissionSupported()) {
-
-    $prefix = ts('SecureFileStorage', array('domain' => 'com.ginkgostreet.securefiles')) . ': ';
-    $newPerms = array(
-      'Administer SecureFileStorage' => array(
-        $prefix . ts('Administer SecureFileStorage', array('domain' => 'com.ginkgostreet.securefiles')),
-        ts('Administer global settings for SecureFile storage', array('domain' => 'com.ginkgostreet.securefiles')),
-      ),
-      'upload own secure files' => array(
-        $prefix . ts('upload secure files', array('domain' => 'com.ginkgostreet.securefiles')),
-        ts('Upload files to Secure Storage that are associated with own contact', array('domain' => 'com.ginkgostreet.securefiles')),
-      ),
-      'upload others secure files' => array(
-        $prefix . ts('upload others secure files', array('domain' => 'com.ginkgostreet.securefiles')),
-        ts('Upload Secure Files that are associated with another user for which this user has permissions', array('domain' => 'com.ginkgostreet.securefiles')),
-      ),
-      'view own secure files' => array(
-        $prefix . ts('view own secure files', array('domain' => 'com.ginkgostreet.securefiles')),
-        ts('Allows a user to download files associated with their contact record that they previously uploaded', array('domain' => 'com.ginkgostreet.securefiles')),
-      ),
-      'view all secure files' => array(
-        $prefix . ts('view all secure files', array('domain' => 'com.ginkgostreet.securefiles')),
-        ts('Allows a user to download  any secure files previously uploaded', array('domain' => 'com.ginkgostreet.securefiles')),
-      ),
-      'list own secure files' => array(
-        $prefix . ts('list own secure files', array('domain' => 'com.ginkgostreet.securefiles')),
-        ts('Allows a user to view a list of files they previously uploaded', array('domain' => 'com.ginkgostreet.securefiles')),
-      ),
-      'list all secure files' => array(
-        $prefix . ts('list own secure files', array('domain' => 'com.ginkgostreet.securefiles')),
-        ts('Allows a user to view a list of all secure files', array('domain' => 'com.ginkgostreet.securefiles')),
-      ),
-    );
-
-    $permissions = array_merge($permissions, $newPerms);
-  }
+  CRM_Securefiles_Permission::getSecurefilePermissions($permissions);
 }
 
 /**
