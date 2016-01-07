@@ -5,6 +5,9 @@ require_once("aws/aws-autoloader.php");
 use GuzzleHttp\Promise;
 use GuzzleHttp\Promise\RejectedPromise;
 use Aws\Credentials\CredentialProvider;
+use Aws\Credentials\Credentials;
+use Aws\Exception\CredentialsException;
+
 
 class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
@@ -42,7 +45,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
       if ($key && $secret) {
         return Promise\promise_for(
-          new Credentials($key, $secret, getenv(self::ENV_SESSION))
+          new Credentials($key, $secret)
         );
       }
 
@@ -112,27 +115,65 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
   public function uploadFile($file, $user = null) {
     $s3 = $this->getS3Client();
+    //todo: create key
+    //todo: Get metadata
+    //todo: Handle server-side encryption settings
     //$s3->putObject();
+    //todo: delete temp files
   }
   public function downloadFile($file, $user = null) {
     $config = $this->getConfig();
     $s3 = $this->getS3Client();
-    $result = $s3->getObject(array(
-      'Bucket' => $config['securefiles_s3_bucket'],
-      'Key'    => $file
-    ));
+    try {
+      $result = $s3->getObject(array(
+        'Bucket' => $config['securefiles_s3_bucket'],
+        'Key' => $file
+      ));
+    } catch (Exception $e) {
+      error_log($e);
+      return null;
+    }
+
     return $result['Body'];
   }
+
   public function deleteFile($file, $user = null) {
     $s3 = $this->getS3Client();
-    //$s3->deleteObject();
+    $config = $this->getConfig();
+    return $s3->deleteObject(array(
+      'Bucket' => $config['securefiles_s3_bucket'],
+      'Key' => $file
+    ));
   }
+
   public function listFiles($user = null) {
     $s3 = $this->getS3Client();
+    $config = $this->getConfig();
     //'Prefix' is used for specifying folder
-    //$s3->listObjects();
+    $params = array("Bucket" => $config['securefiles_s3_bucket']);
+    if(!is_null($user)) {
+      $params['Prefix'] = $user."/";
+    }
+    return $s3->listObjects($params);
   }
-  public function fileMetadata($file, $user = null) {}
+  public function fileMetadata($file, $field = null) {
+    $s3 = $this->getS3Client();
+    $config = $this->getConfig();
+    try {
+      $response = $s3->headObject(array(
+        'Bucket' => $config['securefiles_s3_bucket'],
+        'Key'    => $file
+      ));
+    } catch(Exception $e) {
+      error_log($e);
+      return null;
+    }
+
+    if(!is_null($field)) {
+        return $response[$field];
+    }
+    return $response;
+  }
 
 
 
@@ -172,18 +213,44 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
   function postProcessWidgetForm($metadata, $formName, &$form) {
 
-    //Get the custom value
-    //$params['id'] = custom_field_id
-    //$params['entity_id'] = userId
+    foreach($metadata as $fieldMetadata) {
+      //Get the custom value
+      $fieldId = str_replace("custom_", "", $fieldMetadata->field);
+      $fieldId = preg_replace('/_.*/', "", $fieldId);
+      $params = array(
+        'entity_id' => $form->getVar("_contactId"),
+      );
+
+      $result = civicrm_api3('CustomValue', 'get', $params);
 
 
-    //find the file if it exists
+      $fileMetadata = $this->fileMetadata($fieldMetadata->name, "LastModified");
 
-    //save the file entry
+      $params = array(
+        "mime_type" => $fieldMetadata->mime_type,
+        "uri" => $fieldMetadata->name,
+        "description" => '{"source": "securefiles"}',
+        "upload_date" => $fileMetadata->format("Y-m-d h:m:s")
+      );
 
-    //Update the custom value lookup if needed
+      if($result['count'] > 0 && array_key_exists($fieldId, $result['values'])) {
+        $params['id'] = $result['values'][$fieldId]['latest'];
+      }
+
+      //save the file entry
+      $result = civicrm_api3('File', 'create', $params);
 
 
+      if(!array_key_exists("id", $params)) {
+        //Update the custom value lookup if needed
+        $params = array(
+          'custom_'.$fieldId => $result['values'][0]['id'],
+          'entity_id' => $form->getVar("_contactId"),
+        );
+        $result = civicrm_api3('CustomValue', 'create', $params);
+      }
+
+    }
   }
 
 
