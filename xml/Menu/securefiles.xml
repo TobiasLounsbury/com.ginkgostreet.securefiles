@@ -12,4 +12,10 @@
     <access_arguments>access uploaded files</access_arguments>
     <page_callback>CRM_Securefiles_Page_File</page_callback>
   </item>
+  <item>
+    <path>civicrm/file/delete</path>
+    <title>Delete File</title>
+    <access_arguments>access CiviCRM</access_arguments>
+    <page_callback>CRM_Securefiles_Page_DeleteFile</page_callback>
+  </item>
 </menu>

@@ -233,7 +233,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
         "upload_date" => $fileMetadata->format("Y-m-d h:m:s")
       );
 
-      if($result['count'] > 0 && array_key_exists($fieldId, $result['values'])) {
+      if($result['count'] > 0 && array_key_exists($fieldId, $result['values']) && !empty($result['values'][$fieldId])) {
         $params['id'] = $result['values'][$fieldId]['latest'];
       }
 
@@ -241,10 +241,10 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       $result = civicrm_api3('File', 'create', $params);
 
 
-      if(!array_key_exists("id", $params)) {
+      if(!array_key_exists("id", $params) || !$params['id']) {
         //Update the custom value lookup if needed
         $params = array(
-          'custom_'.$fieldId => $result['values'][0]['id'],
+          'custom_'.$fieldId => $result['id'],
           'entity_id' => $form->getVar("_contactId"),
         );
         $result = civicrm_api3('CustomValue', 'create', $params);
