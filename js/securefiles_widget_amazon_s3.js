@@ -21,7 +21,7 @@ CRM.$(function ($) {
       if (err) {
         dfd.reject(err);
       } else {
-        //Unset the file
+        //Unset the file so it is never uploaded.
         $(field).val("");
 
         //Resolve this promise
@@ -58,7 +58,6 @@ CRM.$(function ($) {
         $.when.apply($, CRM.SecureFilesWidget.promises).done(function(data) {
           CRM.SecureFilesWidget.formComplete = true;
           formObj.find(".securefiles-metadata").val(JSON.stringify(data));
-          //Todo: Clear the file field so it doesn't attempt to upload
           formObj.submit();
         }).fail(function(err) {
           console.log(err);

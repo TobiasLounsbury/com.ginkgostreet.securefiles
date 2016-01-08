@@ -28,13 +28,15 @@ class CRM_Securefiles_Page_DeleteFile extends CRM_Core_Page_File {
 
       if ($details && property_exists($details, "source") && $details->source == "securefiles") {
 
+        //Check extension level permissions
         CRM_Securefiles_Permission::checkFilePerms(CRM_Core_Action::DELETE, $fileID, $entityID);
 
         $backendService = CRM_Securefiles_Backend::getBackendService();
-        //todo: Check permissions
-
         if ($backendService) {
-          $backendService->deleteFile($file['uri'], $entityID);
+          //Check backend service permissions
+          if ($backendService->checkPermissions(CRM_Core_Action::DELETE, $fileID, $entityID) !== false) {
+            $backendService->deleteFile($file['uri'], $entityID);
+          }
         }
       }
     }

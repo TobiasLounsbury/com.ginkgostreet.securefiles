@@ -4,7 +4,7 @@
  * Delegated implementation of hook_civicrm_buildForm
  *
  * Customizes the UI for adding custom fields to allow the user to specify whether
- * a multi-select field should use the slider widget or not
+ * this field should be handled by the secure file extension
  */
 function _securefiles_civicrm_buildForm_CRM_Custom_Form_Field($formName, CRM_Core_Form &$form) {
   // set default value for the checkbox
@@ -36,7 +36,7 @@ function _securefiles_civicrm_buildForm_CRM_Custom_Form_Field($formName, CRM_Cor
 /**
  * Delegated implementation of hook_civicrm_postProcess
  *
- * Handles the "Use Slider Widget?" field added to the custom fields UI
+ * Handles the "Store using SecureFiles?" field added to the custom fields UI
  */
 function _securefiles_civicrm_postProcess_CRM_Custom_Form_Field($formName, &$form) {
   $use_securefiles = CRM_Utils_Array::value('use_securefiles', $form->_submitValues);
@@ -52,11 +52,11 @@ function _securefiles_civicrm_postProcess_CRM_Custom_Form_Field($formName, &$for
 }
 
 /**
- * Delegated implementation of hook_civicrm_buildForm
+ * Delegated implementation of hook_civicrm_validateForm
  *
- * Registers the form to allow use of the volunteer slider widget.
+ * Validate the field settings form
  */
-function _securefiles_civicrm_validateForm_CRM_Profile_Form_Edit($formName, &$fields, &$files, &$form, &$errors) {
+function _securefiles_civicrm_validateForm_CRM_Custom_Form_Field($formName, &$fields, &$files, &$form, &$errors) {
   $backendService = CRM_Securefiles_Backend::getBackendService();
   if($backendService) {
     return $backendService->validateFieldSettings($formName, $fields, $files, $form, $errors);
@@ -156,8 +156,8 @@ function _securefiles_validateWidgetForm($metadata, $formName, &$fields, &$files
 }
 
 /**
- * Helper function to get the list of fields IDs which have had the slider widget
- * applied to them.
+ * Helper function to get the list of fields IDs which have
+ * securefiles enabled as the upload handler
  *
  * @return array
  */
@@ -166,10 +166,10 @@ function _securefiles_get_secure_enabled_fields() {
 }
 
 /**
- * Add or remove fields from the slider widget datastore.
+ * Add or remove fields from the securefiles field settings
  *
  * @param array $params Arrays of custom field IDs which ought to be added or
- *              removed from the slider widget datastore, keyed by CRM_Core_Action::ADD for
+ *              removed from the securefiles settings, keyed by CRM_Core_Action::ADD for
  *              fields which should use the widget, and CRM_Core_Action::DELETE for fields which
  *              should not. If the same custom field ID appears in both the CRM_Core_Action::ADD
  *              and CRM_Core_Action::DELETE arrays, it will be removed.

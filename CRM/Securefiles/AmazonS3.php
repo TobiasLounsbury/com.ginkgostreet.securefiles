@@ -105,7 +105,8 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       ]
     ]);
 
-    $results = $stsClient->getSessionToken();
+    //900 is the smallest amount of time (15 min)
+    $results = $stsClient->getSessionToken(900);
     $creds = $results['Credentials'];
     return $creds;
   }
@@ -209,7 +210,9 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     }
   }
 
-  function validateWidgetForm($metadata, $formName, &$fields, &$files, &$form, &$errors) {}
+  function validateWidgetForm($metadata, $formName, &$fields, &$files, &$form, &$errors) {
+    //todo: Unset errors for required files that are uploaded via JS
+  }
 
   function postProcessWidgetForm($metadata, $formName, &$form) {
 
@@ -456,7 +459,6 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     );
     $fieldNames[] = "securefiles_s3_always_filename";
   }
-
 
   function saveFieldSettings(&$form, $fieldId) {
     CRM_Core_BAO_Setting::setItem((array_key_exists("securefiles_s3_always_filename", $form->_submitValues) ? $form->_submitValues['securefiles_s3_always_filename'] : ""),"securefiles_s3_fields", "securefiles_s3_".$fieldId."_always_filename");

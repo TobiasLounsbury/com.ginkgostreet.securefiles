@@ -27,21 +27,19 @@ class CRM_Securefiles_Page_File extends CRM_Core_Page_File {
       if ($details && property_exists($details, "source") && $details->source == "securefiles") {
         $action = CRM_Utils_Request::retrieve('action', 'String', $this);
 
-        //todo: Check permissions
+        //Check Extension level permissions
+        CRM_Securefiles_Permission::checkFilePerms(CRM_Core_Action::ADD, $id, $eid);
 
         $backendService = CRM_Securefiles_Backend::getBackendService();
         if ($backendService) {
-
-
-          if ($action & CRM_Core_Action::DELETE) {
-            $backendService->deleteFile($file['uri'], $eid);
-          } else {
-
-            //todo: Implement content-disposition
-            //Todo: Handle remote content thumbnail
-
-            $content = $backendService->downloadFile($file['uri'], $eid);
-            CRM_Utils_System::download($file['uri'], $file['mime_type'], $content);
+          if (!($action & CRM_Core_Action::DELETE)) {
+            //Check backend service permissions
+            if ($backendService->checkPermissions(CRM_Core_Action::VIEW, $id, $eid) !== false) {
+              $content = $backendService->downloadFile($file['uri'], $eid);
+              CRM_Utils_System::download($file['uri'], $file['mime_type'], $content);
+            } else {
+              return null;
+            }
           }
 
           //Skip delegating back to the core file handler
