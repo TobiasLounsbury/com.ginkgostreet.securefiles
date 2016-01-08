@@ -60,6 +60,16 @@ class CRM_Securefiles_Permission extends CRM_Core_Permission {
       CRM_Core_Error::fatal('Missing required parameter Project ID');
     }
 
+    //Run the hook that allows third party extensions to
+    //Alter the permissions of a file operation.
+    //If true, they have permission
+    //If False, they expressly do not
+    //If null, fallback on the following checks.
+    $validByHook = CRM_Securefiles_Hooks::checkPermissions($op, $file, $user);
+    if(!is_null($validByHook)) {
+      return $validByHook;
+    }
+
     $contactId = CRM_Core_Session::getLoggedInContactID();
     $checkUserRelationship = !($contactId == $user);
 

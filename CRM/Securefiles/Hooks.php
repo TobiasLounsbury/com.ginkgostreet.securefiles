@@ -21,4 +21,30 @@ class CRM_Securefiles_Hooks {
     );
     return $services;
   }
+
+  /**
+   * Hook that allows 3rd party extensions alter the permissions
+   * for a given user/file/action combo
+   *
+   *
+   * @param $op
+   *  The Action being requested
+   * @param $file
+   *  The File this action is being taken on
+   * @param $user
+   *  The user this file belongs to
+   *
+   * @return mixed
+   *  (Bool) False for expressly deny operation
+   *  (Bool) True for expressly allow this operation
+   *  Null for fallback on built in permissions
+   */
+  public static function checkPermissions($op, $file, $user) {
+    $valid = null;
+    CRM_Utils_Hook::singleton()->invoke(4, $op, $file, $user, $valid,
+      self::$_nullObject, self::$_nullObject,
+      'Securefiles_alterFilePermissions'
+    );
+    return $valid;
+  }
 }
