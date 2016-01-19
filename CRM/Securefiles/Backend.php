@@ -147,6 +147,24 @@ abstract class CRM_Securefiles_Backend {
 
 
   /**
+   * This method is called when a form with a configured
+   * secureFiles field is being created and allows
+   * the backend service to add fields/or resources
+   * as needed to accomplish its tasks
+   *
+   * Delegated from _securefiles_addWidgetToForm
+   * which is an implementation of hook_civicrm_buildForm
+   *
+   * @param $form
+   * An instance of the form that is being created
+   */
+  function runWebformForm( &$form, &$clientSideVars, $fields) {}
+
+
+  function postProcessWidgetWebformForm($metadata, $node, &$submission) {}
+
+
+  /**
    * Validate a form that was submitted with securefile enabled widgets
    *
    * Delegated from _securefiles_validateWidgetForm

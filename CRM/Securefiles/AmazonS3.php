@@ -106,7 +106,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     ]);
 
     //900 is the smallest amount of time (15 min)
-    $results = $stsClient->getSessionToken(900);
+    $results = $stsClient->getSessionToken(array('DurationSeconds' => 900));
     $creds = $results['Credentials'];
     return $creds;
   }
@@ -179,7 +179,41 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
 
 
 
+  function runWebformForm( &$form, &$clientSideVars, $fields) {
 
+
+    $config = $this->getConfig();
+    $clientSideVars['useSTS'] = ($config['securefiles_s3_use_sts'] == 1);
+    if($config['securefiles_s3_use_sts']) {
+
+      $form['#attached']['js'][] = array(
+        'data' => CRM_Core_Resources::singleton()->getUrl('com.ginkgostreet.securefiles', 'js/aws-sdk-2.2.26.min.js', 18, 'page-footer'),
+        'scope' => 'footer',
+      );
+
+      $clientSideVars['Credentials'] = $this->getSTSToken();
+      $clientSideVars['S3Region'] = $config['securefiles_s3_region'];
+      $clientSideVars['S3Bucket'] = $config['securefiles_s3_bucket'];
+      $clientSideVars['useEncryption'] = ($config['securefiles_s3_use_encryption'] == 1);
+      $clientSideVars['encryptionType'] = $config['securefiles_s3_encryption_type'];
+
+
+      //Add the field configs
+      $fieldConfigs = array();
+      foreach($fields as $fid => $field) {
+        //$fieldConfigs[$fieldName] = array();
+        //$fieldConfigs[$fieldName]['id'] = $fieldId;
+        //$fieldConfigs[$fieldName]['name'] = $fieldName;
+        //$fieldConfigs[$fieldName]['filename'] = CRM_Core_BAO_Setting::getItem("securefiles_s3_fields", "securefiles_s3_".$fieldId."_always_filename", false);
+      }
+
+      $clientSideVars['S3Fields'] = $fieldConfigs;
+    }
+    $form['#attached']['js'][] = array(
+      'data' => CRM_Core_Resources::singleton()->getUrl('com.ginkgostreet.securefiles', 'js/securefiles_webform_widget_amazon_s3.js'),
+      'scope' => 'footer',
+    );
+  }
 
 
   function runForm(&$form, &$clientSideVars, $fields) {
@@ -192,7 +226,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       $clientSideVars['Credentials'] = $this->getSTSToken();
       $clientSideVars['S3Region'] = $config['securefiles_s3_region'];
       $clientSideVars['S3Bucket'] = $config['securefiles_s3_bucket'];
-      $clientSideVars['useEncryption'] = ($config['securefiles_s3_use_encryption'] == 1);;
+      $clientSideVars['useEncryption'] = ($config['securefiles_s3_use_encryption'] == 1);
       $clientSideVars['encryptionType'] = $config['securefiles_s3_encryption_type'];
 
 
@@ -214,14 +248,22 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
     //todo: Unset errors for required files that are uploaded via JS
   }
 
-  function postProcessWidgetForm($metadata, $formName, &$form) {
+  function postProcessWidgetWebformForm($metadata, $node, &$submission) {
+    $this->_processMetadata($metadata, CRM_Core_Session::singleton()->getLoggedInContactID());
+  }
 
+  function postProcessWidgetForm($metadata, $formName, &$form) {
+    $this->_processMetadata($metadata, $form->getVar("_contactId"));
+  }
+
+
+  function _processMetadata($metadata, $contactId) {
     foreach($metadata as $fieldMetadata) {
       //Get the custom value
       $fieldId = str_replace("custom_", "", $fieldMetadata->field);
       $fieldId = preg_replace('/_.*/', "", $fieldId);
       $params = array(
-        'entity_id' => $form->getVar("_contactId"),
+        'entity_id' => $contactId
       );
 
       $result = civicrm_api3('CustomValue', 'get', $params);
@@ -248,14 +290,12 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
         //Update the custom value lookup if needed
         $params = array(
           'custom_'.$fieldId => $result['id'],
-          'entity_id' => $form->getVar("_contactId"),
+          'entity_id' => $contactId
         );
         $result = civicrm_api3('CustomValue', 'create', $params);
       }
-
     }
   }
-
 
   /*------------[ Below are functions for working with the Settings form. ]------------*/
 
