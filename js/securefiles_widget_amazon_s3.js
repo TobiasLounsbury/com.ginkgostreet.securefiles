@@ -40,7 +40,7 @@ CRM.$(function ($) {
       if (CRM.SecureFilesWidget.useSTS) {
         //Upload the file using the JavaScript SDK
         CRM.SecureFilesWidget.promises = [];
-        $(this).find(".securefiles_upload").each(function () {
+        $(this).find(".securefiles_upload input:file").each(function () {
 
           var i = 0;
           if(this.files[i]) {

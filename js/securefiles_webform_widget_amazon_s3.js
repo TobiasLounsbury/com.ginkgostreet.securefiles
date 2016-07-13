@@ -33,13 +33,12 @@
   }
 
 
-  $(".securefiles_upload").on("securefiles_upload", function(event) {
+  $(".securefiles_upload input:file").on("securefiles_upload", function(event) {
     if (D.settings.SecureFilesWidget.useSTS) {
       //Upload the file using the JavaScript SDK
       D.settings.SecureFilesWidget.promises = [];
 
       var obj = event.target;
-
       var i = 0;
       if(obj.files[i]) {
         //Looks like we have something to upload

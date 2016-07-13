@@ -262,6 +262,7 @@ class CRM_Securefiles_AmazonS3 extends CRM_Securefiles_Backend {
       //Get the custom value
       $fieldId = str_replace("custom_", "", $fieldMetadata->field);
       $fieldId = preg_replace('/_.*/', "", $fieldId);
+      $fieldId = preg_replace('/-.*/', "", $fieldId);
       $params = array(
         'entity_id' => $contactId
       );
